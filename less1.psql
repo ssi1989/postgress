@@ -1,0 +1,127 @@
+# Create the file repository configuration:
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+
+# Import the repository signing key:
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+
+# Update the package lists:
+sudo apt-get update
+
+# Install the latest version of PostgreSQL.
+# If you want a specific version, use 'postgresql-12' or similar instead of 'postgresql':
+sudo apt-get -y install postgresql-13
+
+su - postgres  -- Переходим на пользователя postgres
+/du -- lists users
+/l -- lists DATABASE
+createuser -s -l -W ssi -- из системы выполнить создание,
+--флаги показывают суперюзер
+-- логин
+-- ввести пароль
+-- имя роли
+
+CREATE ROLE root WITH SUPERUSER LOGIN PASSWORD 'Aa11111!';
+CREATE DATABASE rebrain_courses_db;
+CREATE ROLE rebrain_admin WITH LOGIN PASSWORD 'Aa11111!';
+SET ROLE rebrain_admin;
+SELECT current_user;
+
+GRANT ALL PRIVILEGES ON DATABASE rebrain_courses_db TO rebrain_admin;
+
+DELETE FROM users WHERE user_id=1;  -- Удаляет запись под айди 1
+
+CREATE TABLE users(
+    user_id SERIAL PRIMARY KEY NOT NULL,             -- Primary Key
+    username varchar(50) NOT NULL,                   -- Имя пользователя
+    email varchar(50) NOT NULL,                      -- Электронная почта
+    mobile_phone varchar(12) NOT NULL,               -- Номер телефона
+    firstname TEXT NOT NULL,                         -- Имя
+    lastname TEXT NOT NULL,                          -- Фамилия
+    city  TEXT,                                      -- Название города
+    is_curator boolean NOT NULL,                     -- Является ли пользователь куратором
+    record_date timestamp NOT NULL DEFAULT now()     -- Время создания записи о пользователе
+    );
+
+CREATE TABLE courses(
+        course_id SERIAL PRIMARY KEY NOT NULL,  -- Primary Key
+        coursename varchar(50) NOT NULL,        -- Название практикума
+        tasks_count INT NOT NULL,               -- Количество заданий в практикуме
+        price INT NOT NULL                      -- Цена практикума
+        );
+
+
+CREATE TABLE users__courses(
+            id SERIAL PRIMARY KEY NOT NULL,     -- Primary Key
+            user_id INT NOT NULL,               -- Foreign Key to table users
+            course_id INT NOT NULL,             -- Foreign Key to table courses
+            CONSTRAINT fk_user_id
+                FOREIGN KEY (user_id)
+                    REFERENCES users(user_id),
+            CONSTRAINT fk_course_id
+                FOREIGN KEY (course_id)
+                    REFERENCES courses(course_id)
+            );
+
+INSERT INTO users(username,email,mobile_phone,firstname,lastname,city,is_curator)
+VALUES ('admin','vasiliy_ozerov@mail.com','+79111937483','Vasiliy','Ozerov','Moscow','true'),
+('pricex','SimonWels@mail.com',	'+79111974384','Simon','Wels','London','false'),
+('MaytheForcebewithyou','Leya.Organa@newrepublic.com','+79991916526','Leya','Organa','Alderaan','false'),
+('yodajedi','magistr_yoda@oldrepublic.com','+79114326786','Yoda','Yodin','Dagoba','false'),
+('herion1','Sabur03@yandex.ru','+79110983475','Sabur','Gagiev','Kazan','false'),
+('pusha','Liliana_Sal@yandex.ru','+79115897438','Liliana','Salohina','SPB','false'),
+('vierjohn','xen_power@mail.com','+79112232134','John','Seltic','NULL','false'),
+('trakstars','Pronina@mail.ru','+79811987483','Varya','Pronina','Moscow','false'),
+('vozilla','Maxxx@mail.ru','+79111047854','Max','Visikov','NULL','false'),
+('Kisa007','Kisa007@mail.ru','+79112405972','Raya','Simonova','Tver','false'),
+('greenball','maike.greenball.vazovsky@corp.com','+79112425872','Mike','Vazovsky','Monstertown','false');
+
+
+INSERT INTO courses (coursename, tasks_count,	price)
+VALUES ('Kubernetes','70','35000'),
+('Highload','130','75000'),
+('Bash','15','6900'),
+('Golang','117','55000'),
+('Linux','102','65000'),
+('Devops','212','75000'),
+('Docker','45','30000'),
+('Logs','14','7900');
+
+INSERT INTO users__courses (user_id, course_id)
+VALUES ('1', '1'),
+('1', '4'),
+('3', '2'),
+('3', '4'),
+('2', '6'),
+('2', '1'),
+('2', '2'),
+('2', '4'),
+('5', '6'),
+('6', '6');
+
+
+INSERT INTO users(username,email,mobile_phone,firstname,lastname,city,is_curator)
+VALUES ('vladon','Vladislav.Pirushin@gmail.com','+79817937545','Vladislav','Pirushin','NULL','false');
+
+INSERT INTO courses (coursename, tasks_count,	price)
+VALUES ('Postgresql','14','7900');
+
+SELECT user_id FROM users WHERE mobile_phone='+79991916526'; -- 3 покажет id с таким номером
+SELECT course_id FROM courses WHERE coursename='Devops'; -- 6
+INSERT INTO users__courses (user_id, course_id)
+VALUES ('3', '6');
+
+\! mkdir /tmp/answers/                      -- создаем папку для хранения прям из psql
+\o /tmp/answers/table2_courses_data         -- указываем где хранить
+SELECT * FROM courses;                      -- указываем что хранить
+
+\o /tmp/answers/table1_usernames_and_phones
+SELECT username,mobile_phone FROM users;
+
+DELETE FROM users WHERE username='yodajedi';
+
+UPDATE courses SET price = '10000' WHERE coursename = 'Postgresql';  -- обновляет цену у выбранного курса
+
+UPDATE users SET is_curator = 'true' WHERE firstname = 'Vladislav' and lastname = 'Pirushin'; -- делаем его куратором
+
+COPY (SELECT * FROM courses LEFT JOIN users__courses ON courses.course_id = users__courses.course_id) TO '/tmp/answers/LEFT_OUTER_JOIN';
+COPY (SELECT * FROM users RIGHT JOIN users__courses ON users.user_id = users__courses.user_id) TO '/tmp/answers/RIGHT_OUTER_JOIN';
