@@ -127,3 +127,4 @@ COPY (SELECT * FROM courses LEFT JOIN users__courses ON courses.course_id = user
 COPY (SELECT * FROM users RIGHT JOIN users__courses ON users.user_id = users__courses.user_id) TO '/tmp/answers/RIGHT_OUTER_JOIN';
 
 test test2  
+test 3
