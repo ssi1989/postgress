@@ -125,3 +125,5 @@ UPDATE users SET is_curator = 'true' WHERE firstname = 'Vladislav' and lastname 
 
 COPY (SELECT * FROM courses LEFT JOIN users__courses ON courses.course_id = users__courses.course_id) TO '/tmp/answers/LEFT_OUTER_JOIN';
 COPY (SELECT * FROM users RIGHT JOIN users__courses ON users.user_id = users__courses.user_id) TO '/tmp/answers/RIGHT_OUTER_JOIN';
+
+test 
